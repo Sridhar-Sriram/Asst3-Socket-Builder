@@ -14,6 +14,10 @@ void error(char *msg)
     exit(1);
 }
 
+void * clientServiceThread(void * clientSocket){
+
+}
+
 int main(int argc, char *argv[])
 {
     //int sockfd, newsockfd, portno, clilen;
@@ -22,25 +26,19 @@ int main(int argc, char *argv[])
     
     int sockfd = -1;														// file descriptor for our server socket
     int newsockfd = -1;												// file descriptor for a client socket
-    int portno = -1;														// server port to connect to
+    int portno = 9479;														// server port to connect to
     int clilen = -1;															// utility variable - size of clientAddressInfo below
     int n = -1;																// utility variable - for monitoring reading/writing from/to the socket
     char buffer[256];													// char array to store data going to and coming from the socket
     
     struct sockaddr_in serverAddressInfo;				// Super-special secret C struct that holds address info for building our server socket
     struct sockaddr_in clientAddressInfo;					// Super-special secret C struct that holds address info about our client socket
-    
-    
-    
     // If the user didn't enter enough arguments, complain and exit
     if (argc < 2)
     {
         fprintf(stderr,"ERROR, no port provided\n");
         exit(1);
     }
-    
-    
-    
     /** If the user gave enough arguments, try to use them to get a port number and address **/
     
     // convert the text representation of the port number given by the user to an int
@@ -52,9 +50,6 @@ int main(int argc, char *argv[])
     {
         error("ERROR opening socket");
     }
-    
-    
-    
     /** We now have the port to build our server socket on .. time to set up the address struct **/
     
     // zero out the socket address info struct .. always initialize!
@@ -68,8 +63,6 @@ int main(int argc, char *argv[])
     
     // set a flag to indicate the type of network address we'll be willing to accept connections from
     serverAddressInfo.sin_addr.s_addr = INADDR_ANY;
-    
-    
     
     /** We have an address struct and a socket .. time to build up the server socket **/
     
@@ -88,8 +81,6 @@ int main(int argc, char *argv[])
     // block until a client connects, when it does, create a client socket
     newsockfd = accept(sockfd, (struct sockaddr *) &clientAddressInfo, &clilen);
     
-    
-    
     /** If we're here, a client tried to connect **/
     
     // if the connection blew up for some reason, complain and exit
@@ -97,6 +88,14 @@ int main(int argc, char *argv[])
     {
         error("ERROR on accept");
     }
+    //make socket array
+    int * sockptr=malloc(sizeof(int));
+    sockptr=&newsockfd;
+    pthread_t threadptr;
+    void* (*thread_proc)(void *)=clientServiceThread;
+    pthread_create(&threadptr,NULL,thread_proc,(void*)sockptr);
+
+    //need while loop for seeking out other connections?
     
     // zero out the char buffer to receive a client message
     bzero(buffer,256);
@@ -120,7 +119,6 @@ int main(int argc, char *argv[])
     {
         error("ERROR writing to socket");
     }
-    
     
     return 0; 
 }
