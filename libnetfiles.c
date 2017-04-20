@@ -7,13 +7,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <netinet/in.h>
 
 #define PORT 9479
 #define IP hostname
 
+void error(char *msg)
+{
+    perror(msg);
+    exit(0);
+}
+
+struct hostent *serverIPAddress;
+
 int netserverinit(char * hostname){
-	struct sockaddr_in serverAddressInfo;
-	struct hostent *serverIPAddress;
+	printf("hostname %s\n",hostname);
 	serverIPAddress = gethostbyname(hostname);
 
     if (serverIPAddress == NULL){
@@ -26,14 +34,15 @@ int netserverinit(char * hostname){
 }
 
 int netopen(const char *pathname, int flags){
+
 	int sockfd = -1;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	// try to build a socket .. if it doesn't work, complain and exit
     if (sockfd < 0)
     {
-        error("ERROR creating socket");
+        error("ERROR, creating socket");
     }
-
+    struct sockaddr_in serverAddressInfo;
         /** We now have the IP address and port to connect to on the server, we have to get    **/
     /**   that information into C's special address struct for connecting sockets                     **/
     
@@ -42,7 +51,9 @@ int netopen(const char *pathname, int flags){
     
     // set a flag to indicate the type of network address we'll be using
     serverAddressInfo.sin_family = AF_INET;
+    
     int portno = PORT;
+
     // set the remote port .. translate from a 'normal' int to a super-special 'network-port-int'
     serverAddressInfo.sin_port = htons(portno);
     
@@ -53,11 +64,30 @@ int netopen(const char *pathname, int flags){
     
     // try to connect to the server using our blank socket and the address info struct
     //   if it doesn't work, complain and exit
+
     if (connect(sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0)
     {
         error("ERROR connecting");
     }
+    printf("Socket has connected.\n");
+    char buffer[256];
+    strcpy(buffer,"Hello");
+    send(sockfd,buffer,strlen(buffer),0);
 
      //printf("Please enter the message: ");
+    return 0;
 
 }
+
+ssize_t netread(int fildes, void *buf, size_t nbyte){
+	
+
+}
+
+ssize_t netwrite(int fildes, const void *buf, size_t nbyte){
+
+}
+
+ int netclose(int fd){
+
+ }

@@ -34,15 +34,14 @@ int main(int argc, char *argv[])
     struct sockaddr_in serverAddressInfo;				// Super-special secret C struct that holds address info for building our server socket
     struct sockaddr_in clientAddressInfo;					// Super-special secret C struct that holds address info about our client socket
     // If the user didn't enter enough arguments, complain and exit
-    if (argc < 2)
-    {
-        fprintf(stderr,"ERROR, no port provided\n");
-        exit(1);
-    }
+    // if (argc < 2)
+    // {
+    //     fprintf(stderr,"ERROR, no port provided\n");
+    //     exit(1);
+    // }
     /** If the user gave enough arguments, try to use them to get a port number and address **/
     
     // convert the text representation of the port number given by the user to an int
-    portno = atoi(argv[1]);
     
     // try to build a socket .. if it doesn't work, complain and exit
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -79,7 +78,7 @@ int main(int argc, char *argv[])
     clilen = sizeof(clientAddressInfo);
     
     // block until a client connects, when it does, create a client socket
-    newsockfd = accept(sockfd, (struct sockaddr *) &clientAddressInfo, &clilen);
+    newsockfd = accept(sockfd, (struct sockaddr *) &clientAddressInfo, (socklen_t*)&clilen);
     
     /** If we're here, a client tried to connect **/
     
@@ -88,8 +87,13 @@ int main(int argc, char *argv[])
     {
         error("ERROR on accept");
     }
+    int num=recv(newsockfd,buffer,strlen(buffer),0);
+    printf("%s",buffer);
+
     //make socket array
-    int * sockptr=malloc(sizeof(int));
+    int i=0;
+    int sockptr[5];
+    sockptr[i]=malloc(sizeof(int));
     sockptr=&newsockfd;
     pthread_t threadptr;
     void* (*thread_proc)(void *)=clientServiceThread;
