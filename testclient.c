@@ -28,14 +28,11 @@ int main(int argc, char *argv[]){
     /** If the user gave enough arguments, try to use them to get a port number and address **/
     
     // convert the text representation of the port number given by the user to an int
-    //portno = atoi(argv[2]);
     
     // look up the IP address that matches up with the name given - the name given might
     //    BE an IP address, which is fine, and store it in the 'serverIPAddress' struct
     
     int netinit=netserverinit("127.0.0.1");
-    //set ERRNO
-    printf("Attempting to open connection\n");
     int netfd = netopen("file.txt",O_RDONLY);   
    
     char buffer[256];
@@ -46,7 +43,7 @@ int main(int argc, char *argv[]){
     fgets(buffer,255,stdin);
     
     // try to write it out to the server
-   // n = write(sockfd,buffer,strlen(buffer));
+   n = write(sockfd,buffer,strlen(buffer));
     
     // if we couldn't write to the server for some reason, complain and exit
     if (n < 0)
@@ -58,7 +55,7 @@ int main(int argc, char *argv[]){
     bzero(buffer,256);
     
     // read a message from the server into the buffer
-   // n = read(sockfd,buffer,255);
+   n = read(sockfd,buffer,255);
     
     // if we couldn't read from the server for some reason, complain and exit
     if (n < 0)

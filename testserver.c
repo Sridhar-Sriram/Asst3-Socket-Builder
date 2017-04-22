@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 void error(char *msg)
 {
@@ -14,16 +15,52 @@ void error(char *msg)
     exit(1);
 }
 
-void * clientServiceThread(void * clientSocket){
+//create struct with any other data you need for clientServiceThread
 
+void * clientServiceThread(void * clientSocket){
+    //read from the socket
+    char buffer[1240];
+    int num=recv(*(int*)clientSocket,buffer,strlen(buffer),0);
+    char * firstMess=buffer;
+    int i=1;
+    char * token=malloc(strlen(buffer));
+    token[0]=buffer[0];
+    int openCheck=0;
+    char * flag=malloc(sizeof(char)*10);
+    while(strlen(buffer)>i){
+        token[i]=buffer[i];
+        if(strcmp(token,"op")==0){
+            openCheck=1;
+            token=NULL;
+            int num1=recv(*(int*)clientSocket,flag,strlen(flag),0);
+        }
+        i++;
+    }
+ 
+    if(openCheck==1){
+        int fd=open(token,atoi(flag));
+        char * fdc=malloc(sizeof(char)*10);
+        itoa(fd,fdc,10);
+        send(*(int*)clientSocket,fdc,strlen(fdc),0);
+    }
+
+
+    //open will be first
+    // int num=recv(newsockfd,buffer,strlen(buffer),0);
+    // char delimeter=bufer[0];
+    // int i=1;
+    // while(buffer[i]!='\0'){
+    //     if(buffer[i]=delimeter){
+
+    //     }
+
+    //     i++;
+    // }
+    return NULL;
 }
 
 int main(int argc, char *argv[])
-{
-    //int sockfd, newsockfd, portno, clilen;
-    //struct sockaddr_in serv_addr;
-    //struct sockaddr_in cli_addr;
-    
+{   
     int sockfd = -1;														// file descriptor for our server socket
     int newsockfd = -1;												// file descriptor for a client socket
     int portno = 9479;														// server port to connect to
@@ -75,54 +112,65 @@ int main(int argc, char *argv[])
     listen(sockfd,5);
     
     // determine the size of a clientAddressInfo struct
-    clilen = sizeof(clientAddressInfo);
-    
-    // block until a client connects, when it does, create a client socket
-    newsockfd = accept(sockfd, (struct sockaddr *) &clientAddressInfo, (socklen_t*)&clilen);
-    
-    /** If we're here, a client tried to connect **/
-    
-    // if the connection blew up for some reason, complain and exit
-    if (newsockfd < 0)
-    {
-        error("ERROR on accept");
-    }
-    int num=recv(newsockfd,buffer,strlen(buffer),0);
-    printf("%s",buffer);
+    while(1){
 
-    //make socket array
-    int i=0;
-    int sockptr[5];
-    sockptr[i]=malloc(sizeof(int));
-    sockptr=&newsockfd;
-    pthread_t threadptr;
-    void* (*thread_proc)(void *)=clientServiceThread;
-    pthread_create(&threadptr,NULL,thread_proc,(void*)sockptr);
+        clilen = sizeof(clientAddressInfo);
+        
+        // block until a client connects, when it does, create a client socket
+        newsockfd = accept(sockfd, (struct sockaddr *) &clientAddressInfo, (socklen_t*)&clilen);
+        
+        /** If we're here, a client tried to connect **/
+        
+        // if the connection blew up for some reason, complain and exit
+        if (newsockfd < 0)
+        {
+            error("ERROR on accept");
+        }
+        while(1){
+            int num=recv(newsockfd,buffer,strlen(buffer),0);
 
-    //need while loop for seeking out other connections?
-    
-    // zero out the char buffer to receive a client message
-    bzero(buffer,256);
-    
-    // try to read from the client socket
-    n = read(newsockfd,buffer,255);
-    
-    // if the read from the client blew up, complain and exit
-    if (n < 0)
-    {
-        error("ERROR reading from socket");
+            if(num<0){
+                error("ERROR on recieve");
+            }
+            else if(num==0){
+                printf("connection closed\n");
+                break;
+            }
+
+            printf("%s",buffer);
+
+            //make socket array
+            int *sockptr=malloc(sizeof(int));
+            sockptr=&newsockfd;
+            pthread_t threadptr;
+            void* (*thread_proc)(void *)=clientServiceThread;
+            pthread_create(&threadptr,NULL,thread_proc,(void*)sockptr);
+
+            //need while loop for seeking out other connections?
+            
+            // zero out the char buffer to receive a client message
+            bzero(buffer,256);
+            
+            // try to read from the client socket
+            n = read(newsockfd,buffer,255);
+            
+            // if the read from the client blew up, complain and exit
+            if (n < 0)
+            {
+                error("ERROR reading from socket");
+            }
+            
+            printf("Here is the message: %s\n",buffer);
+            
+            // try to write to the client socket
+            n = write(newsockfd,"I got your message",18);
+            
+            // if the write to the client below up, complain and exit
+            if (n < 0)
+            {
+                error("ERROR writing to socket");
+            }
+        }
     }
-    
-    printf("Here is the message: %s\n",buffer);
-    
-    // try to write to the client socket
-    n = write(newsockfd,"I got your message",18);
-    
-    // if the write to the client below up, complain and exit
-    if (n < 0)
-    {
-        error("ERROR writing to socket");
-    }
-    
     return 0; 
 }

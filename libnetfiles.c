@@ -20,6 +20,10 @@ void error(char *msg)
 
 struct hostent *serverIPAddress;
 
+struct Socket{
+	int sockfd;
+} typedef socket;
+
 int netserverinit(char * hostname){
 	printf("hostname %s\n",hostname);
 	serverIPAddress = gethostbyname(hostname);
@@ -35,10 +39,10 @@ int netserverinit(char * hostname){
 
 int netopen(const char *pathname, int flags){
 
-	int sockfd = -1;
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	socket->sockfd = -1;
+	socket->sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	// try to build a socket .. if it doesn't work, complain and exit
-    if (sockfd < 0)
+    if (socket->sockfd < 0)
     {
         error("ERROR, creating socket");
     }
@@ -65,26 +69,70 @@ int netopen(const char *pathname, int flags){
     // try to connect to the server using our blank socket and the address info struct
     //   if it doesn't work, complain and exit
 
-    if (connect(sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0)
+    if (connect(socket->sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0)
     {
         error("ERROR connecting");
     }
+    char * buffer=malloc(strlen(pathname)+15);
+    strcpy(buffer,"op");
+    strcat(buffer,pathname);
     printf("Socket has connected.\n");
     char buffer[256];
     strcpy(buffer,"Hello");
-    send(sockfd,buffer,strlen(buffer),0);
-
-     //printf("Please enter the message: ");
+    send(socket->sockfd,buffer,strlen(buffer),0);
+    char * flagsC=malloc(10);
+    flagsC=itoa(flags);
+    send(socket->sockfd,flagsC,strlen(buffer),0);
+    char * fd=malloc(3);
+    int ret=recv();
+    if(atoi(fd)==1){
+    	printf("Error");
+    	exit(1);
+    }
+    printf("file des: %d",fd);
     return 0;
 
 }
 
 ssize_t netread(int fildes, void *buf, size_t nbyte){
-	
+
+	char * message=malloc((int)nbyte+3);
+
+	strcpy(message,"r");
+	fildes=files*(-1);
+	char * fdc=itoa(fildes);
+	strcat(message,fdc);
+	char * nbyteStr=itoa((int)nbyte);
+	strcat(message,nbyteStr);
+	int messlength=strlen(message);
+	char * messlc=itoa(messlength);
+	buff=malloc((int)nbyte+5+strlen(message));
+	strcpy((char*)buf, "?");
+	strcat((char*)buf,messlc);
+	strcat((char*)buf,"?");
+	strcat((char*)buf,message);
+	send(socket->sockfd,buf,strlen(buf),0);
 
 }
 
 ssize_t netwrite(int fildes, const void *buf, size_t nbyte){
+	char * message=malloc((int)nbyte+3);
+
+	strcpy(message,"w");
+	fildes=files*(-1);
+	char * fdc=itoa(fildes);
+	strcat(message,fdc);
+	char * nbyteStr=itoa((int)nbyte);
+	strcat(message,(char*)buf);
+	int messlength=strlen(message);
+	char * messlc=itoa(messlength);
+	char * sendbuf=malloc((int)nbyte+5+strlen(message));
+	strcpy(sendbuf, "?");
+	strcat(sendbuf,messlc);
+	strcat(sendbuf,"?");
+	strcat(sendbuf,message);
+	send(socket->sockfd,buf,strlen(buf),0);
+
 
 }
 
