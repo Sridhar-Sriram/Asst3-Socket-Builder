@@ -43,7 +43,7 @@ int main(int argc, char *argv[]){
     fgets(buffer,255,stdin);
     
     // try to write it out to the server
-   n = write(sockfd,buffer,strlen(buffer));
+  // n = write(sockfd,buffer,strlen(buffer));
     
     // if we couldn't write to the server for some reason, complain and exit
     if (n < 0)
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]){
     bzero(buffer,256);
     
     // read a message from the server into the buffer
-   n = read(sockfd,buffer,255);
+  // n = read(sockfd,buffer,255);
     
     // if we couldn't read from the server for some reason, complain and exit
     if (n < 0)

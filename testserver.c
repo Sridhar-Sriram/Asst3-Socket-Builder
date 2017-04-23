@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <fcntl.h>
 
 void error(char *msg)
 {
@@ -19,8 +20,11 @@ void error(char *msg)
 
 void * clientServiceThread(void * clientSocket){
     //read from the socket
-    char buffer[1240];
-    int num=recv(*(int*)clientSocket,buffer,strlen(buffer),0);
+    printf("hello im in thread\n");
+    char buffer[256];
+    bzero(buffer,256);
+    int num=read(*(int*)clientSocket,buffer,strlen(buffer));
+    printf("buffer %s\n",buffer);
     char * firstMess=buffer;
     int i=1;
     char * token=malloc(strlen(buffer));
@@ -30,18 +34,21 @@ void * clientServiceThread(void * clientSocket){
     while(strlen(buffer)>i){
         token[i]=buffer[i];
         if(strcmp(token,"op")==0){
+            printf("in op\n");
             openCheck=1;
             token=NULL;
-            int num1=recv(*(int*)clientSocket,flag,strlen(flag),0);
+            printf("3\n");
+            bzero(flag,256);
+            num=read(*(int*)clientSocket,flag,strlen(flag));
         }
         i++;
     }
  
     if(openCheck==1){
         int fd=open(token,atoi(flag));
-        char * fdc=malloc(sizeof(char)*10);
-        itoa(fd,fdc,10);
-        send(*(int*)clientSocket,fdc,strlen(fdc),0);
+        char fdc[10];
+        sprintf(fdc,"%d",fd);
+        num=write(*(int*)clientSocket,fdc,strlen(fdc));
     }
 
 
@@ -111,33 +118,28 @@ int main(int argc, char *argv[])
     // set up the server socket to listen for client connections
     listen(sockfd,5);
     
-    // determine the size of a clientAddressInfo struct
     while(1){
-
+        // determine the size of a clientAddressInfo struct
         clilen = sizeof(clientAddressInfo);
         
         // block until a client connects, when it does, create a client socket
         newsockfd = accept(sockfd, (struct sockaddr *) &clientAddressInfo, (socklen_t*)&clilen);
         
         /** If we're here, a client tried to connect **/
-        
         // if the connection blew up for some reason, complain and exit
         if (newsockfd < 0)
         {
             error("ERROR on accept");
         }
-        while(1){
-            int num=recv(newsockfd,buffer,strlen(buffer),0);
 
-            if(num<0){
-                error("ERROR on recieve");
-            }
-            else if(num==0){
-                printf("connection closed\n");
-                break;
-            }
-
-            printf("%s",buffer);
+        //while(1){
+            int ret=recv(newsockfd, buffer,strlen(buffer),0);
+            printf("buffer: %s\n",buffer);
+            int num=read(newsockfd,buffer,strlen(buffer));
+            
+            // if(num<0){
+            //     error("ERROR on recieve");
+            // }
 
             //make socket array
             int *sockptr=malloc(sizeof(int));
@@ -160,7 +162,7 @@ int main(int argc, char *argv[])
                 error("ERROR reading from socket");
             }
             
-            printf("Here is the message: %s\n",buffer);
+            //printf("Here is the message: %s\n",buffer);
             
             // try to write to the client socket
             n = write(newsockfd,"I got your message",18);
@@ -170,7 +172,7 @@ int main(int argc, char *argv[])
             {
                 error("ERROR writing to socket");
             }
-        }
+        //}
     }
     return 0; 
 }
