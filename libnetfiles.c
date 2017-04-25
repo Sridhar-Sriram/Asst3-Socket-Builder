@@ -33,40 +33,53 @@ int netserverinit(char * hostname){
     return 0;
 }
 
+/*
+ 1. try to build a socket .. if it doesn't work, complain and exit
+ 
+ 2. We now have the IP address and port to connect to on the server, we have to get that information into C's special address struct for connecting sockets
+ 
+ 3. zero out the socket address info struct .. always initialize!
+ 
+ 4. set a flag to indicate the type of network address we'll be using
+ 
+ 5. set the remote port .. translate from a 'normal' int to a super-special 'network-port-int'
+ 
+ 6. do a raw copy of the bytes that represent the server's IP address in the 'serverIPAddress' struct into our serverIPAddressInfo struct
+ 
+ 7. We now have a blank socket and a fully parameterized address info struct .. time to connect
+ 
+ 8. try to connect to the server using our blank socket and the address info struct if it doesn't work, complain and exit
+
+ */
 int netopen(const char *pathname, int flags){
 
 	sockfd = -1;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	// try to build a socket .. if it doesn't work, complain and exit
-    if (sockfd < 0)
-    {
+	
+    // 1
+    if (sockfd < 0){
         error("ERROR, creating socket");
     }
     struct sockaddr_in serverAddressInfo;
-        /** We now have the IP address and port to connect to on the server, we have to get    **/
-    /**   that information into C's special address struct for connecting sockets                     **/
+    // 2
     
-    // zero out the socket address info struct .. always initialize!
+    // 3
     bzero((char *) &serverAddressInfo, sizeof(serverAddressInfo));
     
-    // set a flag to indicate the type of network address we'll be using
+    // 4
     serverAddressInfo.sin_family = AF_INET;
     
     int portno = PORT;
 
-    // set the remote port .. translate from a 'normal' int to a super-special 'network-port-int'
+    // 5
     serverAddressInfo.sin_port = htons(portno);
     
-    // do a raw copy of the bytes that represent the server's IP address in
-    //   the 'serverIPAddress' struct into our serverIPAddressInfo struct
+    // 6
     bcopy((char *)serverIPAddress->h_addr, (char *)&serverAddressInfo.sin_addr.s_addr, serverIPAddress->h_length);
-    /** We now have a blank socket and a fully parameterized address info struct .. time to connect **/
+    // 7
     
-    // try to connect to the server using our blank socket and the address info struct
-    //   if it doesn't work, complain and exit
-
-    if (connect(sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0)
-    {
+    // 8
+    if (connect(sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0){
         error("ERROR connecting");
     }
 
