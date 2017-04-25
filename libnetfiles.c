@@ -30,12 +30,8 @@ int netserverinit(char * hostname){
         errno=HOST_NOT_FOUND;
         return -1;
     }
-    return 0;
-}
 
-int netopen(const char *pathname, int flags){
-
-	sockfd = -1;
+    sockfd = -1;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	// try to build a socket .. if it doesn't work, complain and exit
     if (sockfd < 0)
@@ -71,6 +67,12 @@ int netopen(const char *pathname, int flags){
     }
 
     printf("Connected\n");
+
+    return 0;
+}
+
+int netopen(const char *pathname, int flags){
+	
     // char confirm[15];
     char buffer[256];
     strcpy(buffer,"o:");
