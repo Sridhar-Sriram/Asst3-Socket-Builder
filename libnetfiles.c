@@ -20,12 +20,9 @@ void error(char *msg)
 
 struct hostent *serverIPAddress;
 
-typedef struct _Socket{
-	int sockfd;
-}sock;
+int sockfd;
 
 int netserverinit(char * hostname){
-	printf("hostname %s\n",hostname);
 	serverIPAddress = gethostbyname(hostname);
 
     if (serverIPAddress == NULL){
@@ -33,16 +30,15 @@ int netserverinit(char * hostname){
         errno=HOST_NOT_FOUND;
         return -1;
     }
-
     return 0;
 }
 
 int netopen(const char *pathname, int flags){
-	sock * Socket=malloc(sizeof(Socket));
-	Socket->sockfd = -1;
-	Socket->sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	sockfd = -1;
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	// try to build a socket .. if it doesn't work, complain and exit
-    if (Socket->sockfd < 0)
+    if (sockfd < 0)
     {
         error("ERROR, creating socket");
     }
@@ -69,39 +65,43 @@ int netopen(const char *pathname, int flags){
     // try to connect to the server using our blank socket and the address info struct
     //   if it doesn't work, complain and exit
 
-    if (connect(Socket->sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0)
+    if (connect(sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0)
     {
         error("ERROR connecting");
     }
-    char * buffer=malloc(strlen(pathname)+15);
-    strcpy(buffer,"op");
-    strcat(buffer,pathname);
-    printf("Socket has connected.\n");
-    buffer="hello";
-    send(Socket->sockfd, buffer, strlen(buffer), 0);
-    
-    int num=write(Socket->sockfd,buffer,strlen(buffer));
-    char * flagsC=malloc(10);
-    sprintf(flagsC,"%d",flags);
-    num=write(Socket->sockfd,flagsC,strlen(flagsC));
-    char * fd=malloc(3);
-    num=read(Socket->sockfd,fd,strlen(fd));
 
+    printf("Connected\n");
+    // char confirm[15];
+    char buffer[256];
+    strcpy(buffer,"o:");
+    strcat(buffer,pathname);
+    strcat(buffer,":");
+    char * flagsC=malloc(sizeof(char)*10);
+    sprintf(flagsC,"%d",flags);
+    strcat(buffer,flagsC);
+    int num=write(sockfd,buffer,strlen(buffer));
+    if(num<0){
+    	error("ERROR writing to socket");
+    }
+
+    bzero(buffer,256);
+    num=read(sockfd,buffer,255);
+	//printf("file des: %s",buffer);
     if(num==-1){
     	error("Error");
     }
 
-    if(atoi(fd)==1){
+    if(atoi(buffer)==1){
     	printf("Error");
     	exit(1);
     }
-    printf("file des: %s",fd);
-    return 0;
+    ssize_t fd=(ssize_t)atoi(buffer);
+// printf("Socket fd open %d\n",Socket->sockfd);
+    return fd;
 
 }
 
 ssize_t netread(int fildes, void *buf, size_t nbyte){
-	sock * Socket=malloc(sizeof(Socket));
 	char * message=malloc((int)nbyte+3);
 
 	strcpy(message,"r");
@@ -120,13 +120,12 @@ ssize_t netread(int fildes, void *buf, size_t nbyte){
 	strcat((char*)buf,messlc);
 	strcat((char*)buf,"?");
 	strcat((char*)buf,message);
-	int num=write(Socket->sockfd,buf,strlen(buf));
+	int num=write(sockfd,buf,strlen(buf));
 	return 0;
 
 }
 
 ssize_t netwrite(int fildes, const void *buf, size_t nbyte){
-	sock * Socket=malloc(sizeof(Socket));
 	char * message=malloc((int)nbyte+3);
 
 	strcpy(message,"w");
@@ -146,12 +145,23 @@ ssize_t netwrite(int fildes, const void *buf, size_t nbyte){
 	strcat(sendbuf,messlc);
 	strcat(sendbuf,"?");
 	strcat(sendbuf,message);
-	int num=write(Socket->sockfd,buf,strlen(buf));
+	int num=write(sockfd,buf,strlen(buf));
 	return 0;
 
 }
 
  int netclose(int fd){
+
+ 	char buffer[256];
+ 	strcpy(buffer,"c");
+ 	char * fdc=malloc(10);
+	sprintf(fdc,"%d",fd);
+ 	strcat(buffer,fdc);
+ 	int num=write(sockfd,buffer,strlen(buffer));
+ 	if(num<0){
+    	error("ERROR writing to socket");
+    }
+    num=close(sockfd);
  	return 0;
 
  }

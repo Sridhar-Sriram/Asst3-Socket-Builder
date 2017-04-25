@@ -34,6 +34,7 @@ int main(int argc, char *argv[]){
     
     int netinit=netserverinit("127.0.0.1");
     int netfd = netopen("file.txt",O_RDONLY);   
+    int netclo=netclose(netfd);
    
     char buffer[256];
     // zero out the message buffer
