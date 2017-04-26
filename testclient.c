@@ -35,38 +35,6 @@ int main(int argc, char *argv[]){
     int netinit=netserverinit("127.0.0.1");
     int netfd = netopen("file.txt",O_RDONLY);   
     int netclo=netclose(netfd);
-   
-    char buffer[256];
-    // zero out the message buffer
-    bzero(buffer,256);
-    
-    // get a message from the client
-    fgets(buffer,255,stdin);
-    
-    // try to write it out to the server
-  // n = write(sockfd,buffer,strlen(buffer));
-    
-    // if we couldn't write to the server for some reason, complain and exit
-    if (n < 0)
-    {
-        error("ERROR writing to socket");
-    }
-    
-    // sent message to the server, zero the buffer back out to read the server's response
-    bzero(buffer,256);
-    
-    // read a message from the server into the buffer
-  // n = read(sockfd,buffer,255);
-    
-    // if we couldn't read from the server for some reason, complain and exit
-    if (n < 0)
-    {
-        error("ERROR reading from socket");
-    }
-    
-    // print out server's message
-    printf("%s\n",buffer);
-    
     
     return 0;
 }

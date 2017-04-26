@@ -42,6 +42,7 @@ int serverClose(char * buffer){
     int fd=atoi(fdc);
     fd=(-1)*fd;
     int c=close(fd);
+    printf("c %d\n",c);
     return c;
 }
 
@@ -58,14 +59,12 @@ void * clientServiceThread(void * clientSocket){
         if(num<0){
             error("ERROR reading from socket");
         }
-        printf("hello im in thread\n");
 
         if(strncmp(buffer,"o",1)==0){
             int fd=serverOpen(buffer);
             char fdc[10];
             fd=(-1)*fd;
             sprintf(fdc,"%d",fd);
-            printf("fdc %s\n",fdc);
             num=write(*(int*)clientSocket,fdc,strlen(fdc));
         }
         else if(strcmp(buffer,"w")==0){
@@ -75,8 +74,10 @@ void * clientServiceThread(void * clientSocket){
             whatNext=READ;
         }
         else if(strncmp(buffer,"c",1)==0){
+            char fdclose[10];
             int sclose=serverClose(buffer);
-            
+            sprintf(fdclose,"%d",sclose);
+            num=write(*(int*)clientSocket,fdclose,strlen(fdclose));
         }
         leave=1;
     //     bzero(buffer,256);
@@ -184,11 +185,10 @@ int main(int argc, char *argv[])
         pthread_t threadptr;
         void* (*thread_proc)(void *)=clientServiceThread;
         int p=pthread_create(&threadptr,NULL,thread_proc,(void*)sockptr);
-        pthread_exit((void*)sockptr);
         if(p!=0){
             error("ERROR when creating thread.");
         }
-
+        pthread_detach(threadptr);
             //close(newsockfd);
             //exit(1);
             // zero out the char buffer to receive a client message

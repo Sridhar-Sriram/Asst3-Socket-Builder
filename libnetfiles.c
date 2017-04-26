@@ -111,6 +111,9 @@ int netopen(const char *pathname, int flags){
     }
     ssize_t fd=(ssize_t)atoi(buffer);
     num=close(sockfd);
+    if(num<0){
+    	error("ERROR socket close was unsuccessful");
+    }
 // printf("Socket fd open %d\n",Socket->sockfd);
     return fd;
 
@@ -255,8 +258,8 @@ ssize_t netwrite(int fildes, const void *buf, size_t nbyte){
     if (connect(sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0){
         error("ERROR connecting");
     }
-
- 	char buffer[256];
+    //printf("hello\n");
+    char buffer[256];
  	strcpy(buffer,"c");
  	char * fdc=malloc(10);
 	sprintf(fdc,"%d",fd);
@@ -265,7 +268,12 @@ ssize_t netwrite(int fildes, const void *buf, size_t nbyte){
  	if(num<0){
     	error("ERROR writing to socket");
     }
+    bzero(buffer,256);
+    num=read(sockfd,buffer,255);
+    int ret=atoi(buffer);
+    if(num<0){
+    	error("ERROR reading to socket");
+    }
     num=close(sockfd);
- 	return 0;
-
+ 	return ret;
  }
