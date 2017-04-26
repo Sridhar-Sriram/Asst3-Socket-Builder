@@ -76,8 +76,9 @@ void * clientServiceThread(void * clientSocket){
         }
         else if(strncmp(buffer,"c",1)==0){
             int sclose=serverClose(buffer);
-            int leave=1;
+            
         }
+        leave=1;
     //     bzero(buffer,256);
     //     num=read(*(int*)clientSocket,buffer,255);
     //     int totalBytes=atoi(buffer);
@@ -113,7 +114,7 @@ void * clientServiceThread(void * clientSocket){
     //         sprintf(fdc,"%d",fd);
     //         num=write(*(int*)clientSocket,fdc,strlen(fdc));
     //     }
-    }
+   }
     return NULL;
 }
 
@@ -183,6 +184,7 @@ int main(int argc, char *argv[])
         pthread_t threadptr;
         void* (*thread_proc)(void *)=clientServiceThread;
         int p=pthread_create(&threadptr,NULL,thread_proc,(void*)sockptr);
+        pthread_exit((void*)sockptr);
         if(p!=0){
             error("ERROR when creating thread.");
         }
@@ -210,6 +212,6 @@ int main(int argc, char *argv[])
            //  {
            //      error("ERROR writing to socket");
            //  }
-    }
+   }
     return 0; 
 }

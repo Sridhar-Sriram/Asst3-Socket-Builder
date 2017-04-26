@@ -30,48 +30,60 @@ int netserverinit(char * hostname){
         errno=HOST_NOT_FOUND;
         return -1;
     }
+		return 0;
+ }
+    
+/*
+ 1. try to build a socket .. if it doesn't work, complain and exit
+ 
+ 2. We now have the IP address and port to connect to on the server, we have to get that information into C's special address struct for connecting sockets
+ 
+ 3. zero out the socket address info struct .. always initialize!
+ 
+ 4. set a flag to indicate the type of network address we'll be using
+ 
+ 5. set the remote port .. translate from a 'normal' int to a super-special 'network-port-int'
+ 
+ 6. do a raw copy of the bytes that represent the server's IP address in the 'serverIPAddress' struct into our serverIPAddressInfo struct
+ 
+ 7. We now have a blank socket and a fully parameterized address info struct .. time to connect
+ 
+ 8. try to connect to the server using our blank socket and the address info struct if it doesn't work, complain and exit
 
-    sockfd = -1;
+ */
+
+int netopen(const char *pathname, int flags){
+	sockfd = -1;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	// try to build a socket .. if it doesn't work, complain and exit
-    if (sockfd < 0)
-    {
+	
+    // 1
+    if (sockfd < 0){
         error("ERROR, creating socket");
     }
     struct sockaddr_in serverAddressInfo;
-        /** We now have the IP address and port to connect to on the server, we have to get    **/
-    /**   that information into C's special address struct for connecting sockets                     **/
+    // 2
     
-    // zero out the socket address info struct .. always initialize!
+    // 3
     bzero((char *) &serverAddressInfo, sizeof(serverAddressInfo));
     
-    // set a flag to indicate the type of network address we'll be using
+    // 4
     serverAddressInfo.sin_family = AF_INET;
     
     int portno = PORT;
 
-    // set the remote port .. translate from a 'normal' int to a super-special 'network-port-int'
+    // 5
     serverAddressInfo.sin_port = htons(portno);
     
-    // do a raw copy of the bytes that represent the server's IP address in
-    //   the 'serverIPAddress' struct into our serverIPAddressInfo struct
+    // 6
     bcopy((char *)serverIPAddress->h_addr, (char *)&serverAddressInfo.sin_addr.s_addr, serverIPAddress->h_length);
-    /** We now have a blank socket and a fully parameterized address info struct .. time to connect **/
+    // 7
     
-    // try to connect to the server using our blank socket and the address info struct
-    //   if it doesn't work, complain and exit
-
-    if (connect(sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0)
-    {
+    // 8
+    if (connect(sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0){
         error("ERROR connecting");
     }
 
     printf("Connected\n");
-
-    return 0;
-}
-
-int netopen(const char *pathname, int flags){
 	
     // char confirm[15];
     char buffer[256];
@@ -98,12 +110,42 @@ int netopen(const char *pathname, int flags){
     	exit(1);
     }
     ssize_t fd=(ssize_t)atoi(buffer);
+    num=close(sockfd);
 // printf("Socket fd open %d\n",Socket->sockfd);
     return fd;
 
 }
 
 ssize_t netread(int fildes, void *buf, size_t nbyte){
+	sockfd = -1;
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	
+    // 1
+    if (sockfd < 0){
+        error("ERROR, creating socket");
+    }
+    struct sockaddr_in serverAddressInfo;
+    // 2
+    
+    // 3
+    bzero((char *) &serverAddressInfo, sizeof(serverAddressInfo));
+    
+    // 4
+    serverAddressInfo.sin_family = AF_INET;
+    
+    int portno = PORT;
+
+    // 5
+    serverAddressInfo.sin_port = htons(portno);
+    
+    // 6
+    bcopy((char *)serverIPAddress->h_addr, (char *)&serverAddressInfo.sin_addr.s_addr, serverIPAddress->h_length);
+    // 7
+    
+    // 8
+    if (connect(sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0){
+        error("ERROR connecting");
+    }
 	char * message=malloc((int)nbyte+3);
 
 	strcpy(message,"r");
@@ -123,11 +165,41 @@ ssize_t netread(int fildes, void *buf, size_t nbyte){
 	strcat((char*)buf,"?");
 	strcat((char*)buf,message);
 	int num=write(sockfd,buf,strlen(buf));
+	num=close(sockfd);
 	return 0;
 
 }
 
 ssize_t netwrite(int fildes, const void *buf, size_t nbyte){
+	sockfd = -1;
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	
+    // 1
+    if (sockfd < 0){
+        error("ERROR, creating socket");
+    }
+    struct sockaddr_in serverAddressInfo;
+    // 2
+    
+    // 3
+    bzero((char *) &serverAddressInfo, sizeof(serverAddressInfo));
+    
+    // 4
+    serverAddressInfo.sin_family = AF_INET;
+    
+    int portno = PORT;
+
+    // 5
+    serverAddressInfo.sin_port = htons(portno);
+    
+    // 6
+    bcopy((char *)serverIPAddress->h_addr, (char *)&serverAddressInfo.sin_addr.s_addr, serverIPAddress->h_length);
+    // 7
+    
+    // 8
+    if (connect(sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0){
+        error("ERROR connecting");
+    }
 	char * message=malloc((int)nbyte+3);
 
 	strcpy(message,"w");
@@ -148,11 +220,41 @@ ssize_t netwrite(int fildes, const void *buf, size_t nbyte){
 	strcat(sendbuf,"?");
 	strcat(sendbuf,message);
 	int num=write(sockfd,buf,strlen(buf));
+	num=close(sockfd);
 	return 0;
 
 }
 
  int netclose(int fd){
+ 	sockfd = -1;
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	
+    // 1
+    if (sockfd < 0){
+        error("ERROR, creating socket");
+    }
+    struct sockaddr_in serverAddressInfo;
+    // 2
+    
+    // 3
+    bzero((char *) &serverAddressInfo, sizeof(serverAddressInfo));
+    
+    // 4
+    serverAddressInfo.sin_family = AF_INET;
+    
+    int portno = PORT;
+
+    // 5
+    serverAddressInfo.sin_port = htons(portno);
+    
+    // 6
+    bcopy((char *)serverIPAddress->h_addr, (char *)&serverAddressInfo.sin_addr.s_addr, serverIPAddress->h_length);
+    // 7
+    
+    // 8
+    if (connect(sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0){
+        error("ERROR connecting");
+    }
 
  	char buffer[256];
  	strcpy(buffer,"c");
