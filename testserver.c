@@ -46,6 +46,27 @@ int serverClose(char * buffer){
     return c;
 }
 
+int serverRead(char * buffer){
+    int n=2;
+    int buff=strlen(buffer);
+    while(n<buff){
+        if(buffer[n]=='?'){
+
+        }
+
+    }
+      while(bytesRec<totalBytes){
+    //         num=read(*(int*)clientSocket,buffer,255);
+    //         if(message==NULL){
+    //             strcpy(message,buffer);
+    //         }
+    //         else{
+    //             strcat(message,buffer);
+    //         }
+    //         bytesRec+=num;
+    //     }
+}
+
 void * clientServiceThread(void * clientSocket){
     //read from the socket
 
@@ -67,10 +88,11 @@ void * clientServiceThread(void * clientSocket){
             sprintf(fdc,"%d",fd);
             num=write(*(int*)clientSocket,fdc,strlen(fdc));
         }
-        else if(strcmp(buffer,"w")==0){
+        else if(strncmp(buffer,"w")==0){
             whatNext=WRITE;
         }
-        else if(strcmp(buffer,"r")==0){
+        else if(strncmp(buffer,"r")==0){
+            int numread=serverRead(buffer);
             whatNext=READ;
         }
         else if(strncmp(buffer,"c",1)==0){

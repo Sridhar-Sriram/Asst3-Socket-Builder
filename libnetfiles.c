@@ -149,25 +149,37 @@ ssize_t netread(int fildes, void *buf, size_t nbyte){
     if (connect(sockfd,(struct sockaddr *)&serverAddressInfo,sizeof(serverAddressInfo)) < 0){
         error("ERROR connecting");
     }
-	char * message=malloc((int)nbyte+3);
 
-	strcpy(message,"r");
-	fildes=fildes*(-1);
-	char * fdc=malloc(10);
-	sprintf(fdc,"%d",fildes);
-	strcat(message,fdc);
-	char * nbyteStr=malloc((int)nbyte);
+    char * nbyteStr=malloc((int)nbyte);
 	sprintf(nbyteStr,"%d",(int)nbyte);
+	char * fdc=malloc(10);
+	fildes=fildes*(-1);
+	sprintf(fdc,"%d",fildes);
+	char * message=malloc(sizeof(char)*(strlen(nbyteStr)+2+strlen(fdc)));
+	buf=(char*)malloc(sizeof(char)*256);
+	strcat(message,fdc);
 	strcat(message,nbyteStr);
+
 	int messlength=strlen(message);
 	char * messlc=malloc(messlength);
 	sprintf(messlc,"%d",messlength);
-	buf=malloc((int)nbyte+5+strlen(message));
-	strcpy((char*)buf, "?");
-	strcat((char*)buf,messlc);
-	strcat((char*)buf,"?");
-	strcat((char*)buf,message);
-	int num=write(sockfd,buf,strlen(buf));
+	buf=malloc(sizeof(char)*(strlen(messlc)+3+strlen(message)));
+	strcpy(buf,"r");
+	strcat(buf, "?");
+	strcat(buf,messlc);
+	strcat(buf,"?");
+	strcat(buf,message);
+	int n=strlen(buf);
+	int num=0;
+	while(n>0){
+		if(n>256){
+			num=write(sockfd,buf,256);
+			buf=&buf[256];
+		}
+		else{
+			num=write(sockfd,buf,strlen(buf));
+		}
+	}
 	num=close(sockfd);
 	return 0;
 
